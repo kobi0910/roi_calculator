@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 投資績效與目標預測</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0F0F11;
+            --input-bg: #27272a;
+            --border-color: #3f3f46;
+            --primary-accent: #818cf8;
+            --primary-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --text-main: #FFFFFF;
+            --text-secondary: #a1a1aa;
+            --radius-lg: 24px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        h1 svg {
+            width: 20px;
+            height: 20px;
+            fill: #818cf8;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 4px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .input-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
+
+        /* 改用 type="text" 但加上 inputmode="numeric" 讓手機跳出數字鍵盤 */
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            color-scheme: dark;
+        }
+
+        input:focus {
+            background-color: #3f3f46;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+        }
+
+        .result-container {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .result-card {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        .result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .val {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .lbl {
+            color: var(--text-secondary);
+        }
+
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .highlight-box {
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .prediction-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .hl-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+            opacity: 0.8;
+        }
+
+        .hl-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .prediction-input-area {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>
+            <svg viewBox="0 0 24 24">
+                <path d="M3 3v18h18v-2H5V3H3m4 14l5-5l4 4l6-6l-1.4-1.4l-4.6 4.6l-4-4L6 14.6l1 1.4z" />
+            </svg>
+            投資績效與預測
+        </h1>
+
+        <div class="section-title">目前績效輸入</div>
+        <div class="input-grid">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>開始日期</label>
+                    <input type="date" id="startDate" value="2020-04-30">
+                </div>
+                <div class="input-group">
+                    <label>結算日期</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>總投入成本</label>
+                    <!-- type="text" 配合 inputmode="decimal" 支援逗號與手機數字鍵盤 -->
+                    <input type="text" inputmode="decimal" id="totalCost" value="1,000,000" oninput="formatInput(this)">
+                </div>
+                <div class="input-group">
+                    <label>目前庫存市值</label>
+                    <input type="text" inputmode="decimal" id="currentValue" value="1,500,000"
+                        oninput="formatInput(this)">
+                </div>
+            </div>
+        </div>
+
+        <div class="prediction-input-area">
+            <div class="section-title" style="margin-top:0;">未來目標設定</div>
+            <div class="input-grid">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>未來每月投入 (元)</label>
+                        <input type="text" inputmode="decimal" id="futureMonthly" value="10,000"
+                            oninput="formatInput(this)">
+                    </div>
+                    <div class="input-group">
+                        <label>目標總資產 (元)</label>
+                        <input type="text" inputmode="decimal" id="targetAmount" value="10,000,000"
+                            oninput="formatInput(this)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="calculateAll()">
+            開始運算
+        </button>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-card">
+                <div class="result-row">
+                    <span class="lbl">實際投資時間</span>
+                    <span class="val" id="resDuration">0.0 個月</span>
+                </div>
+                <div class="result-row">
+                    <span class="lbl">推算過去月均投入</span>
+                    <span class="val" id="resAvgPmt">$0</span>
+                </div>
+                <div class="result-row">
+                    <span class="lbl">總獲利金額</span>
+                    <span class="val" id="resProfit">$0</span>
+                </div>
+                <div class="result-row">
+                    <span class="lbl">總報酬率 (ROI)</span>
+                    <span class="val" id="resTotalRoi">0%</span>
+                </div>
+            </div>
+
+            <div class="highlight-grid">
+                <div class="highlight-box">
+                    <span class="hl-label" style="color: #818cf8;">目前年化報酬率</span>
+                    <span class="hl-value" style="color: #fff;" id="resIrr">0.0%</span>
+                </div>
+                <div class="highlight-box prediction-box">
+                    <span class="hl-label" style="color: #34d399;">預計達成日期</span>
+                    <span class="hl-value" style="color: #fff; font-size: 1.1rem;" id="resDate">--</span>
+                    <div style="font-size:0.7rem; color:#8cdbc1; margin-top:4px;" id="resYearsLeft">(--年後)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 預設結算日為今天
+        document.getElementById('endDate').valueAsDate = new Date();
+
+        // 格式化輸入框功能 (自動加逗號)
+        function formatInput(input) {
+            // 1. 移除所有逗號
+            let value = input.value.replace(/,/g, '');
+
+            // 2. 如果是數字，則重新格式化
+            if (value && !isNaN(value)) {
+                // 保留小數點邏輯 (如果使用者正在打小數點)
+                if (value.indexOf('.') === -1) {
+                    input.value = Number(value).toLocaleString('en-US');
+                } else {
+                    // 如果有小數點，用較簡單的方式處理，避免游標亂跳
+                    let parts = value.split('.');
+                    parts[0] = Number(parts[0]).toLocaleString('en-US');
+                    input.value = parts.join('.');
+                }
+            }
+        }
+
+        // 取得去除逗號後的數值
+        function getRawValue(id) {
+            const val = document.getElementById(id).value.replace(/,/g, '');
+            return parseFloat(val);
+        }
+
+        function calculateAll() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+
+            // 改用 getRawValue 獲取乾淨的數字
+            const totalCost = getRawValue('totalCost');
+            const currentValue = getRawValue('currentValue');
+            const futurePmt = getRawValue('futureMonthly');
+            const targetAmount = getRawValue('targetAmount');
+
+            if (!startDate || !endDate || isNaN(totalCost) || isNaN(currentValue)) {
+                alert("請完整填寫所有欄位");
+                return;
+            }
+
+            const oneDay = 24 * 60 * 60 * 1000;
+            const diffDays = Math.round(Math.abs((endDate - startDate) / oneDay));
+            const exactMonths = diffDays / 30.44;
+
+            if (exactMonths <= 0.1) {
+                alert("投資時間太短，無法計算有效年化報酬率");
+                return;
+            }
+
+            const monthlyPmt = totalCost / exactMonths;
+            const profit = currentValue - totalCost;
+            const totalRoi = (profit / totalCost) * 100;
+
+            // 計算 IRR
+            let low = -0.99;
+            let high = 5.0;
+            let guess = 0;
+
+            for (let i = 0; i < 100; i++) {
+                guess = (low + high) / 2;
+                if (Math.abs(guess) < 0.0000001) guess = 0.0000001;
+                let fv = monthlyPmt * ((Math.pow(1 + guess, exactMonths) - 1) / guess);
+                if (fv > currentValue) high = guess;
+                else low = guess;
+            }
+
+            const monthlyRate = guess;
+            const annualRate = (Math.pow(1 + monthlyRate, 12) - 1) * 100;
+
+            // 計算預測
+            let monthsNeeded = 0;
+            if (targetAmount > currentValue && futurePmt > 0 && monthlyRate > 0) {
+                const r = monthlyRate;
+                const pv = currentValue;
+                const pmt = futurePmt;
+                const fv = targetAmount;
+                const numerator = fv + (pmt / r);
+                const denominator = pv + (pmt / r);
+                const base = 1 + r;
+                monthsNeeded = Math.log(numerator / denominator) / Math.log(base);
+            } else if (monthlyRate <= 0) {
+                const gap = targetAmount - currentValue;
+                if (futurePmt > 0) monthsNeeded = gap / futurePmt;
+            }
+
+            const targetDate = new Date(endDate);
+            const daysNeeded = monthsNeeded * 30.44;
+            targetDate.setDate(targetDate.getDate() + daysNeeded);
+
+            // 格式化輸出
+            const fmtMoney = new Intl.NumberFormat('zh-TW', { style: 'decimal', maximumFractionDigits: 0 });
+
+            document.getElementById('resDuration').innerText = exactMonths.toFixed(1) + " 個月";
+            document.getElementById('resAvgPmt').innerText = "$" + fmtMoney.format(monthlyPmt);
+            document.getElementById('resProfit').innerText = (profit > 0 ? "+" : "") + "$" + fmtMoney.format(profit);
+
+            const roiEl = document.getElementById('resTotalRoi');
+            roiEl.innerText = totalRoi.toFixed(2) + "%";
+            roiEl.style.color = totalRoi >= 0 ? "#34d399" : "#f87171";
+
+            const irrEl = document.getElementById('resIrr');
+            irrEl.innerText = annualRate.toFixed(2) + "%";
+            irrEl.style.color = annualRate >= 0 ? "#818cf8" : "#f87171";
+
+            const dateEl = document.getElementById('resDate');
+            const yearsLeftEl = document.getElementById('resYearsLeft');
+
+            if (monthsNeeded > 0 && monthsNeeded < 1200) {
+                const y = targetDate.getFullYear();
+                const m = targetDate.getMonth() + 1;
+                dateEl.innerText = `${y}年 ${m}月`;
+                yearsLeftEl.innerText = `(約 ${(monthsNeeded / 12).toFixed(1)} 年後)`;
+            } else {
+                dateEl.innerText = "無法計算";
+                yearsLeftEl.innerText = "(請檢查輸入)";
+            }
+
+            document.getElementById('resultContainer').style.display = 'block';
+        }
+    </script>
+
+</body>
+
+</html>
