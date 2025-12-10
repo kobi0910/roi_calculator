@@ -41,7 +41,6 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            /* 改為靠上對齊，適應變長的內容 */
             min-height: 100vh;
             margin: 0;
             padding: 40px 20px;
@@ -58,7 +57,6 @@
             gap: 24px;
         }
 
-        /* 頂部標題 */
         .app-header {
             text-align: center;
             margin-bottom: 8px;
@@ -74,7 +72,6 @@
             gap: 10px;
         }
 
-        /* 通用卡片樣式 */
         .module-card {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
@@ -91,7 +88,6 @@
             border-color: rgba(255, 255, 255, 0.15);
         }
 
-        /* 卡片頂部裝飾線 */
         .card-blue::before {
             content: '';
             position: absolute;
@@ -178,13 +174,11 @@
             border-color: var(--green-primary);
         }
 
-        /* 結果顯示區塊 */
         .result-panel {
             margin-top: 1.5rem;
             padding: 1rem;
             border-radius: var(--radius-md);
             display: none;
-            /* 預設隱藏 */
             animation: fadeIn 0.3s ease-out;
         }
 
@@ -201,6 +195,8 @@
         .big-stat {
             text-align: center;
             margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stat-label {
@@ -216,12 +212,12 @@
             font-weight: 700;
         }
 
+        /* 改為 2x2 格狀佈局 */
         .details-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 1rem;
+            /* 增加間距 */
         }
 
         .detail-item {
@@ -230,13 +226,16 @@
             flex-direction: column;
         }
 
+        .detail-item span:first-child {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2px;
+        }
+
         .detail-val {
             font-weight: 600;
             font-size: 1rem;
-            margin-top: 2px;
         }
 
-        /* 全局按鈕 */
         .btn-float {
             position: fixed;
             bottom: 30px;
@@ -279,7 +278,6 @@
             }
         }
 
-        /* 手機版優化 */
         @media (max-width: 480px) {
             .btn-float {
                 width: 90%;
@@ -345,6 +343,14 @@
                 </div>
                 <div class="details-grid">
                     <div class="detail-item">
+                        <span>投資月數</span>
+                        <span class="detail-val" id="resDuration">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span style="color:#818cf8;">平均月投</span>
+                        <span class="detail-val" id="resAvgPmt">--</span>
+                    </div>
+                    <div class="detail-item">
                         <span>總獲利金額</span>
                         <span class="detail-val" id="resProfit">--</span>
                     </div>
@@ -405,12 +411,10 @@
             </div>
         </div>
 
-        <!-- 底部空間，避免按鈕擋住內容 -->
         <div style="height: 60px;"></div>
 
     </div>
 
-    <!-- 懸浮執行按鈕 -->
     <button class="btn-float" onclick="calculateAll()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
@@ -420,10 +424,8 @@
     </button>
 
     <script>
-        // 預設結算日為今天
         document.getElementById('endDate').valueAsDate = new Date();
 
-        // 格式化輸入框功能
         function formatInput(input) {
             let value = input.value.replace(/,/g, '');
             if (value && !isNaN(value)) {
@@ -443,7 +445,6 @@
         }
 
         function calculateAll() {
-            // --- 1. 取得資料 ---
             const startDate = new Date(document.getElementById('startDate').value);
             const endDate = new Date(document.getElementById('endDate').value);
             const totalCost = getRawValue('totalCost');
@@ -456,7 +457,6 @@
                 return;
             }
 
-            // --- 2. 運算績效 (藍色區塊) ---
             const oneDay = 24 * 60 * 60 * 1000;
             const diffDays = Math.round(Math.abs((endDate - startDate) / oneDay));
             const exactMonths = diffDays / 30.44;
@@ -470,7 +470,6 @@
             const profit = currentValue - totalCost;
             const totalRoi = (profit / totalCost) * 100;
 
-            // 計算 IRR
             let low = -0.99, high = 5.0, guess = 0;
             for (let i = 0; i < 100; i++) {
                 guess = (low + high) / 2;
@@ -482,34 +481,32 @@
             const monthlyRate = guess;
             const annualRate = (Math.pow(1 + monthlyRate, 12) - 1) * 100;
 
-            // 顯示績效結果
             const fmtMoney = new Intl.NumberFormat('zh-TW', { style: 'decimal', maximumFractionDigits: 0 });
 
             const irrEl = document.getElementById('resIrr');
             irrEl.innerText = annualRate.toFixed(2) + "%";
-            irrEl.style.color = annualRate >= 0 ? "#818cf8" : "#f87171"; // 藍色或紅色
+            irrEl.style.color = annualRate >= 0 ? "#818cf8" : "#f87171";
 
+            // 更新藍色區塊數據
+            document.getElementById('resDuration').innerText = exactMonths.toFixed(1) + " 個月";
+            document.getElementById('resAvgPmt').innerText = "$" + fmtMoney.format(monthlyPmt); // 新增的平均月投
             document.getElementById('resProfit').innerText = (profit > 0 ? "+" : "") + "$" + fmtMoney.format(profit);
             document.getElementById('resProfit').style.color = profit >= 0 ? "#34d399" : "#f87171";
-
             document.getElementById('resTotalRoi').innerText = totalRoi.toFixed(2) + "%";
 
-            // 展開藍色面板
             document.getElementById('resultPanel1').style.display = 'block';
 
-            // --- 3. 運算預測 (綠色區塊) ---
+            // 綠色區塊運算
             let monthsNeeded = 0;
             let canPredict = true;
 
             if (monthlyRate <= 0) {
-                // 負報酬或0，簡單算
                 if (futurePmt > 0) {
                     monthsNeeded = (targetAmount - currentValue) / futurePmt;
                 } else {
                     canPredict = false;
                 }
             } else {
-                // 複利算
                 if (targetAmount > currentValue && futurePmt >= 0) {
                     const r = monthlyRate;
                     const numerator = targetAmount + (futurePmt / r);
@@ -517,7 +514,7 @@
                     const base = 1 + r;
                     monthsNeeded = Math.log(numerator / denominator) / Math.log(base);
                 } else {
-                    monthsNeeded = 0; // 已經達成
+                    monthsNeeded = 0;
                 }
             }
 
@@ -545,7 +542,6 @@
                 finalAmountEl.innerText = "--";
             }
 
-            // 展開綠色面板
             document.getElementById('resultPanel2').style.display = 'block';
         }
     </script>
