@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 投資雙效計算機</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0c0d10;
+            --card-bg: rgba(24, 25, 30, 0.72);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --input-bg: #1e2026;
+            --input-border: rgba(255, 255, 255, 0.1);
+
+            --blue-primary: #6366F1;
+            --blue-light: #818cf8;
+            --blue-glow: rgba(99, 102, 241, 0.14);
+
+            --green-primary: #10B981;
+            --green-light: #34D399;
+            --green-glow: rgba(16, 185, 129, 0.14);
+
+            --text-main: #FFFFFF;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 18px 100px;
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.09) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 標題與即時狀態列 */
+        .app-header {
+            text-align: center;
+            padding: 4px 0 6px;
+        }
+
+        .app-header h1 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: -0.6px;
+        }
+
+        .header-subtitle-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10B981;
+            box-shadow: 0 0 8px #10B981;
+            animation: pulseDot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* 模組卡片樣式 */
+        .module-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 1.4rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .module-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card-blue::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366F1, #8B5CF6);
+        }
+
+        .card-green::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10B981, #34D399);
+        }
+
+        .card-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.1rem;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .blue-text {
+            color: #818cf8;
+        }
+
+        .green-text {
+            color: #34d399;
+        }
+
+        .badge-step {
+            font-size: 0.72rem;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* 輸入表單網格 */
+        .input-grid {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .label-action-btn {
+            background: none;
+            border: none;
+            color: #818cf8;
+            font-size: 0.72rem;
+            cursor: pointer;
+            padding: 0;
+            font-weight: 600;
+            text-decoration: underline;
+            font-family: inherit;
+        }
+
+        .label-action-btn:hover {
+            color: #a5b4fc;
+        }
+
+        /* 輸入框與下拉選單 */
+        input,
+        select {
+            width: 100%;
+            padding: 0.82rem 0.95rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 0.98rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color-scheme: dark;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.9rem center;
+            background-size: 1rem;
+            padding-right: 2.4rem;
+        }
+
+        select option {
+            background-color: #1a1c22;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        input:focus,
+        select:focus {
+            background-color: #262932;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+        }
+
+        .card-blue input:focus,
+        .card-blue select:focus {
+            border-color: var(--blue-primary);
+        }
+
+        .card-green input:focus,
+        .card-green select:focus {
+            border-color: var(--green-primary);
+        }
+
+        /* 快捷金額晶片 */
+        .quick-chips-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .chip-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .chip-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 目標進度條整合設計 */
+        .goal-progress-box {
+            background: rgba(0, 0, 0, 0.22);
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 0.9rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #10B981, #34D399);
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        /* 預估年化報酬率滑桿區塊 */
+        .slider-group {
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            margin-top: 2px;
+        }
+
+        .slider-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-stepper-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-stepper {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .btn-stepper:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(1.08);
+        }
+
+        .btn-stepper:active {
+            transform: scale(0.92);
+        }
+
+        .slider-val-badge {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 2px 12px;
+            border-radius: 999px;
+            font-variant-numeric: tabular-nums;
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+            min-width: 72px;
+            text-align: center;
+        }
+
+        /* 診斷 IRR 一鍵帶入提示按鈕 */
+        .sync-irr-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #c7d2fe;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .sync-irr-badge:hover {
+            background: rgba(99, 102, 241, 0.35);
+            border-color: rgba(99, 102, 241, 0.6);
+            transform: translateY(-1px);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #3f3f46;
+            outline: none;
+            padding: 0;
+            margin: 6px 0 2px 0;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #10B981;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover,
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.22);
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.85);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #10B981;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+        }
+
+        .slider-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.73rem;
+            color: var(--text-secondary);
+            user-select: none;
+            padding: 0 2px;
+        }
+
+        .scale-anchor {
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 4px;
+            transition: color 0.15s;
+        }
+
+        .scale-anchor:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 結果展示面板 */
+        .result-panel {
+            margin-top: 1.3rem;
+            padding: 1.2rem;
+            border-radius: var(--radius-lg);
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .blue-panel {
+            background: var(--blue-glow);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .green-panel {
+            background: var(--green-glow);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .big-stat {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* 模組一診斷數據 2x2 格狀 */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
+        }
+
+        .detail-item {
+            font-size: 0.82rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .detail-item span:first-child {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detail-val {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        /* 模組二達成預測核心指標卡 (3 格並列) */
+        .target-trio-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 1.1rem;
+        }
+
+        .trio-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            text-align: center;
+        }
+
+        .trio-title {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .trio-val {
+            font-size: 0.96rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .trio-sub {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* Canvas 圖表區塊 */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            padding: 12px 12px 8px;
+            margin-top: 1rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .chart-legends {
+            display: flex;
+            gap: 12px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 190px;
+        }
+
+        canvas#growthChart {
+            width: 100%;
+            height: 190px;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(22, 23, 28, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            transform: translate(-50%, -125%);
+            transition: opacity 0.15s;
+        }
+
+        /* 通膨折現與加速建議整合區 */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .insight-card {
+            background: rgba(0, 0, 0, 0.26);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .insight-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .insight-title {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .insight-highlight {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #34d399;
+        }
+
+        /* 通膨折現開關 */
+        .inflation-toggle-box {
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.26);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+
+        .inflation-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 23px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3f3f46;
+            transition: 0.25s;
+            border-radius: 24px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.25s;
+            border-radius: 50%;
+        }
+
+        .switch input:checked + .switch-slider {
+            background-color: #10B981;
+        }
+
+        .switch input:checked + .switch-slider:before {
+            transform: translateX(19px);
+        }
+
+        /* 複製報告按鈕列 */
+        .btn-action-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.1rem;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #FFFFFF;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.96);
+        }
+
+        /* 精緻懸浮重新整理/運算膠囊按鈕 */
+        .btn-float-capsule {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(30, 31, 38, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.86rem;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .btn-float-capsule:hover {
+            background: #FFFFFF;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-float-capsule:active {
+            transform: scale(0.95);
+        }
+
+        /* Toast 提示 */
+        .toast-bubble {
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(24, 25, 30, 0.96);
+            backdrop-filter: blur(12px);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 9px 22px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 200;
+        }
+
+        .toast-bubble.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 24px 14px 90px;
+            }
+
+            .btn-float-capsule {
+                bottom: 18px;
+                right: 18px;
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .target-trio-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .trio-card {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+                padding: 8px 12px;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-wrapper">
+
+        <!-- 頂部標題與即時連動反饋 -->
+        <header class="app-header">
+            <h1>
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2v20M2 12h20" stroke-linecap="round" />
+                    <circle cx="12" cy="12" r="8" />
+                </svg>
+                AI 投資雙效計算機
+            </h1>
+            <div class="header-subtitle-row">
+                <span>歷史績效診斷 • 未來複利推算</span>
+                <span class="live-badge">
+                    <span class="live-dot"></span>
+                    即時自動運算
+                </span>
+            </div>
+        </header>
+
+        <!-- 區塊一：目前投資績效診斷 (藍色) -->
+        <section class="module-card card-blue">
+            <div class="card-title-row">
+                <h2 class="card-title blue-text">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    目前投資績效診斷
+                </h2>
+                <span class="badge-step">STEP 1 • 歷史檢視</span>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-row">
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label for="startDate">開始投資日期</label>
+                            <span id="labelDurationHint" style="font-size: 0.7rem; color: #818cf8;"></span>
+                        </div>
+                        <input type="date" id="startDate" value="2020-04-30" onchange="calculateAll()">
+                    </div>
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label for="endDate">結算日期</label>
+                            <button type="button" class="label-action-btn" onclick="setToday()">設為今天</button>
+                        </div>
+                        <input type="date" id="endDate" onchange="calculateAll()">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="totalCost">總投入成本</label>
+                        <input type="text" inputmode="decimal" id="totalCost" value="1,000,000"
+                            oninput="formatInput(this); calculateAll()">
+                    </div>
+                    <div class="input-group">
+                        <label for="currentValue">目前庫存現值</label>
+                        <input type="text" inputmode="decimal" id="currentValue" value="1,500,000"
+                            oninput="formatInput(this); calculateAll()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 藍色診斷結果面板 -->
+            <div class="result-panel blue-panel" id="resultPanel1">
+                <div class="big-stat">
+                    <div class="stat-label">年化報酬率 (IRR)</div>
+                    <div class="stat-value" id="resIrr">--%</div>
+                </div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span>投資月數</span>
+                        <span class="detail-val" id="resDuration">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span style="color:#818cf8;">平均月投</span>
+                        <span class="detail-val" id="resAvgPmt">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>總獲利金額</span>
+                        <span class="detail-val" id="resProfit">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>總報酬率</span>
+                        <span class="detail-val" id="resTotalRoi">--</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊二：未來目標複利預測 (綠色) -->
+        <section class="module-card card-green">
+            <div class="card-title-row">
+                <h2 class="card-title green-text">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 6v6l4 2" />
+                    </svg>
+                    未來目標複利預測
+                </h2>
+                <span class="badge-step">STEP 2 • 目標願景</span>
+            </div>
+
+            <!-- 目標達成進度微型面板 -->
+            <div class="goal-progress-box">
+                <div class="progress-header">
+                    <span>現值已達目標</span>
+                    <span id="goalProgressText" style="color: #34d399; font-weight: 700;">15.0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="goalProgressBar" style="width: 15%;"></div>
+                </div>
+                <div style="font-size: 0.72rem; color: #a1a1aa; display: flex; justify-content: space-between;">
+                    <span id="goalCurrentText">現值: $1,500,000</span>
+                    <span id="goalGapText">尚需累積: 850 萬元</span>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="futureMonthly">未來每月定期定額</label>
+                        <select id="futureMonthly" onchange="updateTargetPrediction()">
+                            <option value="10000" selected>10,000 元</option>
+                            <option value="15000">15,000 元</option>
+                            <option value="20000">20,000 元</option>
+                            <option value="25000">25,000 元</option>
+                            <option value="30000">30,000 元</option>
+                            <option value="35000">35,000 元</option>
+                            <option value="40000">40,000 元</option>
+                            <option value="45000">45,000 元</option>
+                            <option value="50000">50,000 元</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label for="targetAmount">目標總資產 (萬元)</label>
+                        </div>
+                        <input type="text" inputmode="decimal" id="targetAmount" value="1,000" placeholder="例如: 1000"
+                            oninput="formatInput(this); updateTargetPrediction()">
+                        <!-- 快捷金額標籤 -->
+                        <div class="quick-chips-row">
+                            <button type="button" class="chip-btn" onclick="setTargetWan(500)">500萬</button>
+                            <button type="button" class="chip-btn" onclick="setTargetWan(1000)">1,000萬</button>
+                            <button type="button" class="chip-btn" onclick="setTargetWan(2000)">2,000萬</button>
+                            <button type="button" class="chip-btn" onclick="setTargetWan(3000)">3,000萬</button>
+                            <button type="button" class="chip-btn" onclick="setTargetWan(5000)">5,000萬</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 預估年化報酬率滑桿 -->
+                <div class="slider-group">
+                    <div class="slider-header-row">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="futureRoiSlider" style="margin: 0;">預估年化報酬率</label>
+                            <button type="button" class="sync-irr-badge" id="btnSyncIrr" onclick="syncIrrToSlider()" style="display: none;">
+                                ✨ 套用診斷 IRR
+                            </button>
+                        </div>
+                        <div class="slider-stepper-wrap">
+                            <button type="button" class="btn-stepper" onclick="stepRoi(-0.5)" title="減少 0.5%">-</button>
+                            <span class="slider-val-badge" id="sliderRoiVal">10.0%</span>
+                            <button type="button" class="btn-stepper" onclick="stepRoi(0.5)" title="增加 0.5%">+</button>
+                        </div>
+                    </div>
+                    <input type="range" id="futureRoiSlider" min="5" max="25" step="0.5" value="10"
+                        oninput="onSliderChange(this.value)">
+                    <div class="slider-scale">
+                        <span class="scale-anchor" onclick="jumpRoi(5)">5%</span>
+                        <span class="scale-anchor" onclick="jumpRoi(10)">10%</span>
+                        <span class="scale-anchor" onclick="jumpRoi(15)">15%</span>
+                        <span class="scale-anchor" onclick="jumpRoi(20)">20%</span>
+                        <span class="scale-anchor" onclick="jumpRoi(25)">25%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 綠色目標預測結果面板 -->
+            <div class="result-panel green-panel" id="resultPanel2">
+                <div class="big-stat">
+                    <div class="stat-label">預計達成日期</div>
+                    <div class="stat-value" id="resDate">--</div>
+                    <div style="font-size: 0.95rem; color: #34d399; font-weight: 700; margin-top: 4px;">
+                        距離達標約需 <span id="resYearsLeft">--</span>
+                    </div>
+                </div>
+
+                <!-- 關鍵分解三指標：目標總額 vs 總投入本金 vs 複利創造獲利 -->
+                <div class="target-trio-grid">
+                    <div class="trio-card">
+                        <span class="trio-title">🎯 目標總額</span>
+                        <span class="trio-val" id="resFinalAmount" style="color: #FFFFFF;">--</span>
+                        <span class="trio-sub">設定金額</span>
+                    </div>
+                    <div class="trio-card">
+                        <span class="trio-title">💼 總累計本金</span>
+                        <span class="trio-val" id="resTotalPrincipal" style="color: #818cf8;">--</span>
+                        <span class="trio-sub" id="resPrincipalPercent">佔 --%</span>
+                    </div>
+                    <div class="trio-card">
+                        <span class="trio-title">🚀 複利獲利</span>
+                        <span class="trio-val" id="resCompoundGains" style="color: #34d399;">--</span>
+                        <span class="trio-sub" id="resGainsPercent">佔 --%</span>
+                    </div>
+                </div>
+
+                <!-- 互動式資產成長 Canvas 圖表 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <span>資產累積與複利軌跡</span>
+                        <div class="chart-legends">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #10B981;"></span>
+                                <span>總資產 (含複利)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #818cf8;"></span>
+                                <span>累積本金</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="growthChart"></canvas>
+                        <div class="chart-tooltip" id="chartTooltip"></div>
+                    </div>
+                </div>
+
+                <!-- 智慧加速達標建議小卡 -->
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <span class="insight-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2">
+                                <path d="M12 19V5M5 12l7-7 7 7"/>
+                            </svg>
+                            若每月多投 5,000 元
+                        </span>
+                        <span class="insight-highlight" id="insightPmt">可提早 --</span>
+                    </div>
+                    <div class="insight-card">
+                        <span class="insight-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                            若年化報酬率 +2%
+                        </span>
+                        <span class="insight-highlight" id="insightRoi">可提早 --</span>
+                    </div>
+                </div>
+
+                <!-- 通膨折現開關 -->
+                <div class="inflation-toggle-box">
+                    <div class="inflation-info">
+                        <span style="font-weight: 600; color: #fff;">考慮年通貨膨脹率 (2.0%)</span>
+                        <span id="inflationText" style="font-size: 0.74rem; color: #a1a1aa;">折算實質購買力：未開啟</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="inflationToggle" onchange="updateInflationDisplay()">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 複製規劃報告按鈕 -->
+                <div class="btn-action-row">
+                    <button type="button" class="btn-secondary" onclick="copyReport()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        複製完整規劃摘要
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 底部精巧懸浮重新整理/手動運算膠囊按鈕 -->
+    <button class="btn-float-capsule" onclick="calculateAll(true)" title="立即手動重新運算">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        重新運算
+    </button>
+
+    <!-- 浮動提示 Toast -->
+    <div class="toast-bubble" id="toastNotification"></div>
+
+    <script>
+        document.getElementById('endDate').valueAsDate = new Date();
+
+        let isCalculated = false;
+        let lastCalculatedIrr = null;
+        let currentChartData = null;
+        let currentCalculatedYears = 0;
+
+        // 初始化滑桿進度
+        updateSliderTrack(10);
+        setupChartInteractivity();
+
+        function setToday() {
+            document.getElementById('endDate').valueAsDate = new Date();
+            calculateAll();
+            showToast("已將結算日期設為今天");
+        }
+
+        function setTargetWan(wan) {
+            document.getElementById('targetAmount').value = Number(wan).toLocaleString('en-US');
+            updateTargetPrediction();
+            showToast(`已設定目標總資產為 ${wan} 萬元`);
+        }
+
+        function stepRoi(delta) {
+            const slider = document.getElementById('futureRoiSlider');
+            let val = parseFloat(slider.value) + delta;
+            val = Math.min(25, Math.max(5, Math.round(val * 10) / 10));
+            slider.value = val;
+            onSliderChange(val);
+        }
+
+        function jumpRoi(val) {
+            const slider = document.getElementById('futureRoiSlider');
+            slider.value = val;
+            onSliderChange(val);
+        }
+
+        function updateSliderTrack(val) {
+            const slider = document.getElementById('futureRoiSlider');
+            const percent = ((val - 5) / (25 - 5)) * 100;
+            slider.style.background = `linear-gradient(to right, #10B981 0%, #10B981 ${percent}%, #3f3f46 ${percent}%, #3f3f46 100%)`;
+        }
+
+        function onSliderChange(val) {
+            const num = parseFloat(val);
+            document.getElementById('sliderRoiVal').innerText = num.toFixed(1) + "%";
+            updateSliderTrack(num);
+            updateTargetPrediction();
+        }
+
+        function syncIrrToSlider() {
+            if (lastCalculatedIrr !== null) {
+                const clamped = Math.min(25, Math.max(5, Math.round(lastCalculatedIrr * 10) / 10));
+                const slider = document.getElementById('futureRoiSlider');
+                slider.value = clamped;
+                onSliderChange(clamped);
+                showToast(`已同步套用診斷 IRR (${clamped.toFixed(1)}%)`);
+            }
+        }
+
+        function formatInput(input) {
+            let value = input.value.replace(/,/g, '');
+            if (value && !isNaN(value)) {
+                if (value.indexOf('.') === -1) {
+                    input.value = Number(value).toLocaleString('en-US');
+                } else {
+                    let parts = value.split('.');
+                    parts[0] = Number(parts[0]).toLocaleString('en-US');
+                    input.value = parts.join('.');
+                }
+            }
+        }
+
+        function getRawValue(id) {
+            const el = document.getElementById(id);
+            if (!el) return NaN;
+            const val = el.value.replace(/,/g, '');
+            return parseFloat(val);
+        }
+
+        function updateCurrentProgress() {
+            const currentVal = getRawValue('currentValue');
+            const targetWan = getRawValue('targetAmount');
+            if (isNaN(currentVal) || isNaN(targetWan) || targetWan <= 0) return;
+
+            const targetVal = targetWan * 10000;
+            const progress = Math.min(100, Math.max(0, (currentVal / targetVal) * 100));
+            const gapWan = Math.max(0, (targetVal - currentVal) / 10000);
+
+            const fmtMoney = new Intl.NumberFormat('zh-TW', { style: 'decimal', maximumFractionDigits: 0 });
+            document.getElementById('goalProgressText').innerText = progress.toFixed(1) + "%";
+            document.getElementById('goalProgressBar').style.width = progress + "%";
+            document.getElementById('goalCurrentText').innerText = "現值: $" + fmtMoney.format(currentVal);
+            document.getElementById('goalGapText').innerText = progress >= 100 ? "目標已達成！" : `尚需累積: ${fmtMoney.format(gapWan)} 萬元`;
+        }
+
+        function animateNumber(element, start, end, duration, formatFn) {
+            if (!element) return;
+            const startTime = performance.now();
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = start + (end - start) * ease;
+                element.innerText = formatFn ? formatFn(current) : Math.round(current);
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.innerText = formatFn ? formatFn(end) : end;
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        function updateInflationDisplay() {
+            const isChecked = document.getElementById('inflationToggle').checked;
+            const targetAmountInWan = getRawValue('targetAmount');
+            const targetAmount = targetAmountInWan * 10000;
+            const years = currentCalculatedYears;
+
+            const textEl = document.getElementById('inflationText');
+            if (!isChecked || years <= 0) {
+                textEl.innerText = "折算實質購買力：未開啟";
+                return;
+            }
+
+            const inflationRate = 0.02;
+            const realPurchasingPower = targetAmount / Math.pow(1 + inflationRate, years);
+            const realWan = Math.round(realPurchasingPower / 10000);
+            textEl.innerHTML = `折算實質購買力：約等同現今 <b style="color:#34d399;">$${realWan.toLocaleString('zh-TW')} 萬元</b>`;
+        }
+
+        // ==================== 模組二：未來目標複利推算 ====================
+        function updateTargetPrediction() {
+            const endDateVal = document.getElementById('endDate').value;
+            const endDate = endDateVal ? new Date(endDateVal) : new Date();
+            const currentValue = getRawValue('currentValue');
+            const futurePmt = getRawValue('futureMonthly');
+            const targetAmountInWan = getRawValue('targetAmount');
+            const targetAmount = targetAmountInWan * 10000;
+            const roiPercent = parseFloat(document.getElementById('futureRoiSlider').value);
+            const expectedAnnualRate = roiPercent / 100;
+
+            if (isNaN(currentValue) || isNaN(futurePmt) || isNaN(targetAmountInWan) || targetAmountInWan <= 0) {
+                return;
+            }
+
+            updateCurrentProgress();
+
+            const fmtMoney = new Intl.NumberFormat('zh-TW', { style: 'decimal', maximumFractionDigits: 0 });
+            const dateEl = document.getElementById('resDate');
+            const yearsEl = document.getElementById('resYearsLeft');
+            const finalAmountEl = document.getElementById('resFinalAmount');
+            const principalEl = document.getElementById('resTotalPrincipal');
+            const principalPctEl = document.getElementById('resPrincipalPercent');
+            const gainsEl = document.getElementById('resCompoundGains');
+            const gainsPctEl = document.getElementById('resGainsPercent');
+
+            let monthsNeeded = 0;
+            let canPredict = true;
+
+            const r = Math.pow(1 + expectedAnnualRate, 1 / 12) - 1;
+
+            if (r <= 0) {
+                if (futurePmt > 0) {
+                    monthsNeeded = (targetAmount - currentValue) / futurePmt;
+                } else {
+                    canPredict = false;
+                }
+            } else {
+                if (targetAmount > currentValue) {
+                    if (futurePmt >= 0) {
+                        const numerator = targetAmount + (futurePmt / r);
+                        const denominator = currentValue + (futurePmt / r);
+                        const base = 1 + r;
+                        monthsNeeded = Math.log(numerator / denominator) / Math.log(base);
+                    } else {
+                        canPredict = false;
+                    }
+                } else {
+                    monthsNeeded = 0;
+                }
+            }
+
+            // 展開面板
+            document.getElementById('resultPanel2').style.display = 'block';
+
+            if (canPredict && monthsNeeded > 0 && monthsNeeded < 1200) {
+                const targetDate = new Date(endDate);
+                targetDate.setDate(targetDate.getDate() + (monthsNeeded * 30.44));
+
+                const y = targetDate.getFullYear();
+                const m = targetDate.getMonth() + 1;
+                const totalYears = monthsNeeded / 12;
+                currentCalculatedYears = totalYears;
+
+                dateEl.innerText = `${y}年 ${m}月`;
+                yearsEl.innerText = formatDuration(monthsNeeded);
+
+                // 本金與複利分析
+                const totalPrincipal = currentValue + futurePmt * monthsNeeded;
+                const compoundGains = Math.max(0, targetAmount - totalPrincipal);
+                const principalRatio = Math.min(100, Math.max(0, (totalPrincipal / targetAmount) * 100));
+                const gainsRatio = 100 - principalRatio;
+
+                finalAmountEl.innerText = "$" + fmtMoney.format(targetAmountInWan) + " 萬";
+                principalEl.innerText = "$" + fmtMoney.format(Math.round(totalPrincipal / 10000)) + " 萬";
+                principalPctEl.innerText = `佔 ${principalRatio.toFixed(0)}%`;
+                gainsEl.innerText = "+$" + fmtMoney.format(Math.round(compoundGains / 10000)) + " 萬";
+                gainsPctEl.innerText = `佔 ${gainsRatio.toFixed(0)}%`;
+
+                // 渲染圖表與洞察
+                requestAnimationFrame(() => {
+                    renderGrowthChart(totalYears, currentValue, futurePmt, targetAmount, expectedAnnualRate);
+                });
+
+                calculateSpeedupInsights(totalYears, currentValue, futurePmt, targetAmount, expectedAnnualRate);
+                updateInflationDisplay();
+
+            } else if (monthsNeeded <= 0) {
+                currentCalculatedYears = 0;
+                dateEl.innerText = "已達成!";
+                yearsEl.innerText = "已達標";
+                finalAmountEl.innerText = "$" + fmtMoney.format(Math.round(currentValue / 10000)) + " 萬";
+                principalEl.innerText = "$" + fmtMoney.format(Math.round(currentValue / 10000)) + " 萬";
+                principalPctEl.innerText = "佔 100%";
+                gainsEl.innerText = "+$0 萬";
+                gainsPctEl.innerText = "佔 0%";
+                document.getElementById('insightPmt').innerText = "目標已達成！";
+                document.getElementById('insightRoi').innerText = "目標已達成！";
+                updateInflationDisplay();
+            } else {
+                dateEl.innerText = "無法計算";
+                yearsEl.innerText = "--";
+                finalAmountEl.innerText = "--";
+                principalEl.innerText = "--";
+                gainsEl.innerText = "--";
+            }
+        }
+
+        // 時間換算 (X年X個月 / X個月 / X年)
+        function formatDuration(totalMonths) {
+            if (totalMonths <= 0) return "已達標";
+            const roundedM = Math.round(totalMonths);
+            if (roundedM === 0) return "不到 1 個月";
+            const y = Math.floor(roundedM / 12);
+            const m = roundedM % 12;
+            if (y > 0 && m > 0) return `${y}年${m}個月`;
+            if (y > 0) return `${y}年`;
+            return `${m}個月`;
+        }
+
+        // 加速達標分析
+        function formatSpeedup(diffMonths) {
+            if (diffMonths <= 0.05) {
+                return "時間幾乎無差異";
+            }
+            const roundedM = Math.round(diffMonths);
+            if (roundedM === 0) {
+                return "可提早不到 1 個月達標";
+            }
+            const y = Math.floor(roundedM / 12);
+            const m = roundedM % 12;
+            if (y > 0 && m > 0) {
+                return `可提早 ${y}年${m}個月達標`;
+            } else if (y > 0) {
+                return `可提早 ${y}年達標`;
+            } else {
+                return `可提早 ${m}個月達標`;
+            }
+        }
+
+        function calculateSpeedupInsights(baseYears, currentValue, futurePmt, targetAmount, expectedAnnualRate) {
+            const r = Math.pow(1 + expectedAnnualRate, 1 / 12) - 1;
+            const baseMonths = baseYears * 12;
+
+            // 情境 1：每月多投入 5000 元
+            const extraPmt = futurePmt + 5000;
+            const num1 = targetAmount + (extraPmt / r);
+            const den1 = currentValue + (extraPmt / r);
+            const months1 = Math.log(num1 / den1) / Math.log(1 + r);
+            const diffMonths1 = Math.max(0, baseMonths - months1);
+            document.getElementById('insightPmt').innerText = formatSpeedup(diffMonths1);
+
+            // 情境 2：年化報酬率再提升 2%
+            const higherRate = expectedAnnualRate + 0.02;
+            const r2 = Math.pow(1 + higherRate, 1 / 12) - 1;
+            const num2 = targetAmount + (futurePmt / r2);
+            const den2 = currentValue + (futurePmt / r2);
+            const months2 = Math.log(num2 / den2) / Math.log(1 + r2);
+            const diffMonths2 = Math.max(0, baseMonths - months2);
+            document.getElementById('insightRoi').innerText = formatSpeedup(diffMonths2);
+        }
+
+        // ==================== 模組一：歷史投資診斷 ====================
+        function calculateAll(isUserClick = false) {
+            const startDateEl = document.getElementById('startDate');
+            const endDateEl = document.getElementById('endDate');
+            const startDate = new Date(startDateEl.value);
+            const endDate = new Date(endDateEl.value);
+            const totalCost = getRawValue('totalCost');
+            const currentValue = getRawValue('currentValue');
+            const targetAmountInWan = getRawValue('targetAmount');
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(totalCost) || isNaN(currentValue) || isNaN(targetAmountInWan)) {
+                if (isUserClick) alert("請完整填寫所有欄位");
+                return;
+            }
+
+            if (targetAmountInWan <= 0) {
+                if (isUserClick) alert("目標總資產必須大於 0");
+                return;
+            }
+
+            if (endDate <= startDate) {
+                if (isUserClick) alert("結算日期必須晚於開始日期");
+                return;
+            }
+
+            if (totalCost <= 0) {
+                if (isUserClick) alert("總成本必須大於 0");
+                return;
+            }
+
+            if (currentValue < 0) {
+                if (isUserClick) alert("庫存現值不能為負數");
+                return;
+            }
+
+            const oneDay = 24 * 60 * 60 * 1000;
+            const diffDays = Math.round((endDate - startDate) / oneDay);
+            const exactMonths = diffDays / 30.44;
+
+            if (exactMonths <= 0.1) {
+                if (isUserClick) alert("投資時間太短（小於 3 天），無法計算");
+                return;
+            }
+
+            // 更新開始日期旁邊的即時月數提示
+            const yearsPart = Math.floor(exactMonths / 12);
+            const monthsPart = Math.round(exactMonths % 12);
+            let durationHint = `已投資 ${exactMonths.toFixed(1)} 個月`;
+            if (yearsPart > 0) {
+                durationHint = `已投資 ${yearsPart}年${monthsPart > 0 ? monthsPart + '個月' : ''}`;
+            }
+            document.getElementById('labelDurationHint').innerText = durationHint;
+
+            const monthlyPmt = totalCost / exactMonths;
+            const profit = currentValue - totalCost;
+            const totalRoi = (profit / totalCost) * 100;
+
+            let low = -0.99, high = 5.0, guess = 0;
+            for (let i = 0; i < 100; i++) {
+                guess = (low + high) / 2;
+                let fv;
+                if (Math.abs(guess) < 1e-9) {
+                    fv = monthlyPmt * exactMonths;
+                } else {
+                    fv = monthlyPmt * ((Math.pow(1 + guess, exactMonths) - 1) / guess);
+                }
+                if (fv > currentValue) high = guess; else low = guess;
+            }
+
+            const monthlyRate = guess;
+            const annualRate = (Math.pow(1 + monthlyRate, 12) - 1) * 100;
+
+            const fmtMoney = new Intl.NumberFormat('zh-TW', { style: 'decimal', maximumFractionDigits: 0 });
+
+            const irrEl = document.getElementById('resIrr');
+            animateNumber(irrEl, 0, annualRate, 600, (v) => v.toFixed(2) + "%");
+            irrEl.style.color = annualRate >= 0 ? "#818cf8" : "#f87171";
+
+            animateNumber(document.getElementById('resDuration'), 0, exactMonths, 500, (v) => v.toFixed(1) + " 個月");
+            animateNumber(document.getElementById('resAvgPmt'), 0, monthlyPmt, 500, (v) => "$" + fmtMoney.format(v));
+
+            const profitEl = document.getElementById('resProfit');
+            animateNumber(profitEl, 0, profit, 600, (v) => (v > 0 ? "+" : "") + "$" + fmtMoney.format(v));
+            profitEl.style.color = profit >= 0 ? "#34d399" : "#f87171";
+
+            const roiEl = document.getElementById('resTotalRoi');
+            animateNumber(roiEl, 0, totalRoi, 600, (v) => v.toFixed(2) + "%");
+
+            document.getElementById('resultPanel1').style.display = 'block';
+
+            // 記錄本次算出的 IRR 並更新帶入按鈕
+            lastCalculatedIrr = annualRate;
+            const btnSync = document.getElementById('btnSyncIrr');
+            if (btnSync) {
+                btnSync.style.display = 'inline-flex';
+                btnSync.innerText = `✨ 套用歷史 IRR (${annualRate.toFixed(1)}%)`;
+            }
+
+            isCalculated = true;
+            updateTargetPrediction();
+
+            if (isUserClick) {
+                showToast("⚡ 已完成全面重新運算！");
+            }
+        }
+
+        // ==================== 互動式 Canvas 折線圖 ====================
+        function renderGrowthChart(yearsNeeded, currentValue, futurePmt, targetAmount, expectedAnnualRate) {
+            const canvas = document.getElementById('growthChart');
+            if (!canvas) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const wrapper = canvas.parentElement;
+            const displayWidth = canvas.clientWidth || (wrapper ? wrapper.clientWidth : 0) || 480;
+            const displayHeight = 190;
+
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+
+            const ctx = canvas.getContext('2d');
+            if (ctx.resetTransform) {
+                ctx.resetTransform();
+            } else {
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+            ctx.scale(dpr, dpr);
+
+            const width = displayWidth;
+            const height = displayHeight;
+            const padding = { top: 20, right: 18, bottom: 24, left: 18 };
+
+            const r = Math.pow(1 + expectedAnnualRate, 1 / 12) - 1;
+            const steps = Math.min(30, Math.max(6, Math.ceil(yearsNeeded * 2)));
+            const dataPoints = [];
+
+            for (let i = 0; i <= steps; i++) {
+                const year = (yearsNeeded * i) / steps;
+                const m = year * 12;
+                const principal = currentValue + futurePmt * m;
+                let total = currentValue;
+                if (r > 0) {
+                    total = (currentValue + futurePmt / r) * Math.pow(1 + r, m) - futurePmt / r;
+                } else {
+                    total = principal;
+                }
+                dataPoints.push({
+                    year: year,
+                    principal: principal,
+                    total: total
+                });
+            }
+
+            currentChartData = {
+                points: dataPoints,
+                width: width,
+                height: height,
+                padding: padding,
+                targetAmount: targetAmount
+            };
+
+            drawChart(ctx, currentChartData);
+        }
+
+        function drawChart(ctx, chartData, hoverIndex = -1) {
+            const { points, width, height, padding, targetAmount } = chartData;
+            ctx.clearRect(0, 0, width, height);
+
+            const plotW = width - padding.left - padding.right;
+            const plotH = height - padding.top - padding.bottom;
+
+            const maxVal = Math.max(targetAmount * 1.08, points[points.length - 1].total * 1.05);
+            const minVal = 0;
+
+            const getX = (idx) => padding.left + (idx / (points.length - 1)) * plotW;
+            const getY = (val) => padding.top + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+
+            // 水平網格線
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 3; i++) {
+                const y = padding.top + (plotH / 3) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+            }
+
+            // 目標金色水平虛線
+            const targetY = getY(targetAmount);
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, targetY);
+            ctx.lineTo(width - padding.right, targetY);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.fillText(`目標 $${Math.round(targetAmount / 10000)}萬`, width - padding.right - 58, targetY - 4);
+            ctx.restore();
+
+            // 1. 本金填充區域
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(0));
+            for (let i = 0; i < points.length; i++) {
+                ctx.lineTo(getX(i), getY(points[i].principal));
+            }
+            ctx.lineTo(getX(points.length - 1), getY(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.16)';
+            ctx.fill();
+
+            // 2. 總資產漸層填充區域
+            const greenGrad = ctx.createLinearGradient(0, padding.top, 0, height);
+            greenGrad.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+            greenGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(0));
+            for (let i = 0; i < points.length; i++) {
+                ctx.lineTo(getX(i), getY(points[i].total));
+            }
+            ctx.lineTo(getX(points.length - 1), getY(0));
+            ctx.closePath();
+            ctx.fillStyle = greenGrad;
+            ctx.fill();
+
+            // 3. 本金折線
+            ctx.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const x = getX(i);
+                const y = getY(points[i].principal);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            // 4. 總資產折線
+            ctx.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const x = getX(i);
+                const y = getY(points[i].total);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = '#10B981';
+            ctx.lineWidth = 2.4;
+            ctx.shadowColor = 'rgba(16, 185, 129, 0.6)';
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // X 軸刻度
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.fillText('現在 (0年)', padding.left, height - 6);
+            const endYearText = `${points[points.length - 1].year.toFixed(1)} 年後`;
+            ctx.fillText(endYearText, width - padding.right - ctx.measureText(endYearText).width, height - 6);
+
+            // 懸浮互動游標
+            if (hoverIndex >= 0 && hoverIndex < points.length) {
+                const pt = points[hoverIndex];
+                const hx = getX(hoverIndex);
+                const hyTotal = getY(pt.total);
+                const hyPrincipal = getY(pt.principal);
+
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+                ctx.moveTo(hx, padding.top);
+                ctx.lineTo(hx, padding.top + plotH);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#818cf8';
+                ctx.beginPath();
+                ctx.arc(hx, hyPrincipal, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#10B981';
+                ctx.beginPath();
+                ctx.arc(hx, hyTotal, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        function setupChartInteractivity() {
+            const canvas = document.getElementById('growthChart');
+            const tooltip = document.getElementById('chartTooltip');
+            if (!canvas || !tooltip) return;
+
+            function handleMove(e) {
+                if (!currentChartData) return;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const mouseX = clientX - rect.left;
+
+                const { points, width, padding } = currentChartData;
+                const plotW = width - padding.left - padding.right;
+
+                let ratio = (mouseX - padding.left) / plotW;
+                ratio = Math.max(0, Math.min(1, ratio));
+                const hoverIdx = Math.round(ratio * (points.length - 1));
+
+                const ctx = canvas.getContext('2d');
+                drawChart(ctx, currentChartData, hoverIdx);
+
+                const pt = points[hoverIdx];
+                const fmtMoney = new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 });
+                const totalWan = (pt.total / 10000).toFixed(0);
+                const pmtWan = (pt.principal / 10000).toFixed(0);
+                const gainWan = ((pt.total - pt.principal) / 10000).toFixed(0);
+
+                tooltip.innerHTML = `
+                    <div style="font-weight:700; color:#fff; margin-bottom:3px;">第 ${pt.year.toFixed(1)} 年</div>
+                    <div style="color:#34d399;">總資產: $${fmtMoney.format(pt.total)} (${totalWan}萬)</div>
+                    <div style="color:#818cf8;">累積本金: $${fmtMoney.format(pt.principal)} (${pmtWan}萬)</div>
+                    <div style="color:#fbbf24; font-size:0.7rem;">複利獲利: +$${fmtMoney.format(pt.total - pt.principal)} (${gainWan}萬)</div>
+                `;
+
+                const tooltipX = padding.left + (hoverIdx / (points.length - 1)) * plotW;
+                tooltip.style.left = tooltipX + 'px';
+                tooltip.style.top = '50px';
+                tooltip.style.display = 'block';
+            }
+
+            function handleLeave() {
+                if (!currentChartData) return;
+                const ctx = canvas.getContext('2d');
+                drawChart(ctx, currentChartData, -1);
+                tooltip.style.display = 'none';
+            }
+
+            canvas.onmousemove = handleMove;
+            canvas.onmouseleave = handleLeave;
+            canvas.ontouchstart = handleMove;
+            canvas.ontouchmove = handleMove;
+            canvas.ontouchend = handleLeave;
+        }
+
+        window.addEventListener('resize', () => {
+            if (isCalculated && currentChartData) {
+                const roiPercent = parseFloat(document.getElementById('futureRoiSlider').value);
+                renderGrowthChart(
+                    currentCalculatedYears,
+                    getRawValue('currentValue'),
+                    getRawValue('futureMonthly'),
+                    getRawValue('targetAmount') * 10000,
+                    roiPercent / 100
+                );
+            }
+        });
+
+        function copyReport() {
+            const resIrr = document.getElementById('resIrr').innerText;
+            const resDuration = document.getElementById('resDuration').innerText;
+            const resAvgPmt = document.getElementById('resAvgPmt').innerText;
+            const resProfit = document.getElementById('resProfit').innerText;
+            const resDate = document.getElementById('resDate').innerText;
+            const resYears = document.getElementById('resYearsLeft').innerText;
+            const resFinal = document.getElementById('resFinalAmount').innerText;
+            const resPrincipal = document.getElementById('resTotalPrincipal').innerText;
+            const resGains = document.getElementById('resCompoundGains').innerText;
+            const expectedRoi = document.getElementById('sliderRoiVal').innerText;
+            const futurePmt = document.getElementById('futureMonthly').selectedOptions[0].text;
+
+            const text = `📊【AI 投資雙效計算機規劃報告】
+-----------------------------
+【目前投資診斷】
+• 年化報酬率 (IRR)：${resIrr}
+• 投資時間：${resDuration}
+• 歷史平均月投：${resAvgPmt}
+• 累積獲利：${resProfit}
+
+【未來複利預測】
+• 預估年化報酬率：${expectedRoi}
+• 未來每月投入：${futurePmt}
+• 目標資產總額：${resFinal}
+• 預計達成時間：${resDate}（約需 ${resYears}）
+• 總投入本金：${resPrincipal}
+• 複利創造獲利：${resGains}
+• 加速建議：${document.getElementById('insightPmt').innerText}
+-----------------------------
+（由 AI 投資雙效計算機推算）`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("📋 已複製完整規劃摘要至剪貼簿！");
+            }).catch(() => {
+                showToast("複製失敗，請手動複製");
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            toast.innerText = message;
+            toast.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2300);
+        }
+
+        // 自動執行一次初始運算，確保進入頁面時立即可見！
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', () => calculateAll(false));
+        } else {
+            calculateAll(false);
+        }
+    </script>
+
+</body>
+
+</html>
